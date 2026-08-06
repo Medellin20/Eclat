@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Le plugin officiel Next.js gère le routage App Router,
+# les routes API et le rendu à la demande sur Netlify.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

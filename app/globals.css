@@ -1,0 +1,161 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-porcelaine text-encre antialiased;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  /* Focus clavier visible partout — exigence d'accessibilité. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-prune ring-offset-2 ring-offset-porcelaine rounded-md;
+  }
+
+  ::selection {
+    background: #F58BB0;
+    color: #241329;
+  }
+
+  /* Chiffres alignés pour les prix, minuteurs et durées. */
+  .tabulaire {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+}
+
+@layer components {
+  /* Libellé utilitaire : petites capitales espacées. */
+  .eyebrow {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-prune;
+  }
+
+  .surface {
+    @apply rounded-4xl border border-brume bg-white shadow-douce;
+  }
+
+  .lien-nav {
+    @apply relative text-sm font-medium text-ardoise transition-colors hover:text-encre;
+  }
+
+  .lien-nav::after {
+    content: '';
+    @apply absolute -bottom-1.5 left-0 h-px w-0 bg-rose transition-all duration-300;
+  }
+
+  .lien-nav:hover::after,
+  .lien-nav[data-actif='true']::after {
+    @apply w-full;
+  }
+
+  .lien-nav[data-actif='true'] {
+    @apply text-encre;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold
+           transition-all duration-300 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primaire {
+    @apply btn text-white shadow-douce hover:shadow-levee hover:-translate-y-0.5;
+    background-image: linear-gradient(110deg, #6D28A8 0%, #A03BA0 48%, #E0407E 100%);
+    background-size: 180% 100%;
+    background-position: 0% 0%;
+  }
+
+  .btn-primaire:hover {
+    background-position: 100% 0%;
+  }
+
+  .btn-secondaire {
+    @apply btn border border-brume bg-white text-encre hover:border-prune-soft hover:bg-rose-wash;
+  }
+
+  .btn-fantome {
+    @apply btn text-ardoise hover:bg-brume hover:text-encre;
+  }
+
+  .champ {
+    @apply w-full rounded-2xl border border-brume bg-white px-4 py-3 text-sm text-encre
+           placeholder:text-ardoise/60 transition-colors
+           focus:border-prune-soft focus:outline-none focus:ring-2 focus:ring-prune/25;
+  }
+
+  .etiquette {
+    @apply mb-1.5 block text-xs font-semibold uppercase tracking-[0.12em] text-ardoise;
+  }
+
+  /* Signature : le halo dégradé derrière les portraits. */
+  .medaillon {
+    @apply relative overflow-hidden rounded-4xl bg-brume;
+  }
+
+  .medaillon::after {
+    content: '';
+    @apply pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500;
+    background: linear-gradient(to top, rgba(36, 19, 41, 0.55) 0%, rgba(36, 19, 41, 0) 55%);
+  }
+
+  .groupe-carte:hover .medaillon::after {
+    @apply opacity-100;
+  }
+}
+
+@layer utilities {
+  /* Grain très léger : donne de la matière au fond blanc. */
+  .grain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.35;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  }
+
+  .aura {
+    background-image:
+      radial-gradient(55% 55% at 12% 8%, rgba(224, 64, 126, 0.20) 0%, rgba(224, 64, 126, 0) 60%),
+      radial-gradient(50% 50% at 88% 4%, rgba(109, 40, 168, 0.22) 0%, rgba(109, 40, 168, 0) 62%),
+      radial-gradient(60% 45% at 50% 100%, rgba(154, 99, 209, 0.14) 0%, rgba(154, 99, 209, 0) 70%);
+  }
+
+  .texte-degrade {
+    background-image: linear-gradient(102deg, #6D28A8 0%, #A03BA0 52%, #E0407E 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .defilement-invisible::-webkit-scrollbar {
+    display: none;
+  }
+
+  .defilement-invisible {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Respect de la préférence système « moins d'animations ». */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

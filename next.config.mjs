@@ -1,0 +1,13 @@
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    // Les médias de démonstration sont locaux (public/media).
+    // Ajoutez ici vos domaines Supabase Storage si vous passez en distant.
+    remotePatterns: [
+      { protocol: 'https', hostname: '**.supabase.co', pathname: '/storage/v1/object/public/**' },
+    ],
+  },
+};
+
+export default nextConfig;
