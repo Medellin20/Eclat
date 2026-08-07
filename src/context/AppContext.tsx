@@ -11,7 +11,6 @@ import {
   type ReactNode,
 } from 'react';
 import type { AppState, Booking, Coach, Media, Purchase } from '@/types';
-import { SEED_COACHES } from '@/data/seed';
 import { makeId } from '@/lib/format';
 import {
   isSupabaseEnabled,
@@ -52,7 +51,7 @@ interface AppContextValue {
 const AppContext = createContext<AppContextValue | null>(null);
 
 const INITIAL: AppState = {
-  coaches: SEED_COACHES,
+  coaches: [],
   bookings: [],
   purchases: [],
 };

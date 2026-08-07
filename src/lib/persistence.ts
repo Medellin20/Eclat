@@ -12,11 +12,13 @@ import { getSupabase, isSupabaseEnabled } from '@/lib/supabase';
  * Le repli local garantit que la démonstration fonctionne hors ligne.
  */
 
-const LOCAL_KEY = 'eclat.state.v1';
+// La version 2 repart volontairement avec une base vide : les profils seront
+// désormais créés manuellement depuis l'administration.
+const LOCAL_KEY = 'eclat.state.v2';
 const DB_NAME = 'eclat';
 const DB_VERSION = 1;
 const STORE_NAME = 'app_state';
-const ROW_ID = 'singleton';
+const ROW_ID = 'singleton-v2';
 const TABLE = 'app_state';
 
 export function readLocal(): AppState | null {
@@ -140,13 +142,14 @@ export async function loadRemote(): Promise<AppState | null> {
 }
 
 export async function saveRemote(state: AppState): Promise<boolean> {
-  const sb = getSupabase();
-  if (!sb) return false;
+  if (!isSupabaseEnabled()) return false;
   try {
-    const { error } = await sb
-      .from(TABLE)
-      .upsert({ id: ROW_ID, data: state, updated_at: new Date().toISOString() });
-    return !error;
+    const response = await fetch('/api/admin/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(state),
+    });
+    return response.ok;
   } catch {
     return false;
   }

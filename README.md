@@ -59,10 +59,11 @@ localStorage du navigateur.
 | `/bookings` | Formulaire de réservation avec récapitulatif de prix en direct |
 | `/bookings-history` | Historique des réservations (état vide inclus) |
 | `/video-call` | Salle d'appel simulée : minuteur, micro, caméra, raccrochage |
-| `/admin` | Connexion de démonstration + tableau de bord |
+| `/admin` | Connexion sécurisée côté serveur + tableau de bord |
 | `/api/notify-payment` | Route POST de notification (Nodemailer) |
 
-**Accès administration :** mot de passe `eclat2026` — voir l'avertissement de sécurité plus bas.
+**Accès administration :** configurez `ADMIN_PASSWORD` et `ADMIN_SESSION_SECRET`
+dans `.env.local` ou dans les variables d’environnement de l’hébergeur.
 
 ---
 
@@ -214,18 +215,17 @@ curl -X POST http://localhost:3000/api/notify-payment \
 
 ### Authentification administrateur
 
-L'écran `/admin` compare un mot de passe **écrit en clair dans le code client**
-(`src/components/AdminPanel.tsx`). N'importe qui peut le lire dans le bundle
-JavaScript. Cela n'offre **aucune sécurité réelle** et ne convient qu'à une
-démonstration.
+Le mot de passe est vérifié par la route serveur `/api/admin/session` et n’est
+jamais intégré au JavaScript envoyé au navigateur. La session est conservée huit
+heures dans un cookie `HttpOnly`. Définissez deux variables secrètes :
 
-Pour une vraie mise en production :
+```env
+ADMIN_PASSWORD=votre-mot-de-passe
+ADMIN_SESSION_SECRET=une-longue-valeur-aleatoire
+```
 
-1. Remplacer le formulaire par `supabase.auth.signInWithPassword()`.
-2. Protéger les routes d'administration via un middleware Next.js qui vérifie la session.
-3. Activer Row Level Security sur `app_state` et n'autoriser l'écriture qu'au rôle « admin ».
-
-Sans RLS, la clé anonyme publique permet à quiconque d'écrire dans la base.
+En production, protégez également les écritures Supabase avec Row Level Security :
+la protection de l’écran d’administration ne remplace pas les règles d’accès à la base.
 
 ### Paiements
 
@@ -246,9 +246,8 @@ enregistré.
 
 ## Médias de démonstration
 
-Les 36 images et 12 vidéos de `public/media/` ont été générées spécifiquement
-pour ce projet : dégradés abstraits originaux et animations de zoom lent.
-Elles sont **libres d'usage**, sans dépendance réseau et sans contenu explicite.
+Les photos et vidéos utilisées par le profil sont stockées dans `public/media/`
+et référencées depuis `src/data/seed.ts`.
 
 Pour utiliser vos propres fichiers : déposez-les dans `public/media/`, ou
 téléversez-les dans votre bucket Supabase et collez l'URL publique dans

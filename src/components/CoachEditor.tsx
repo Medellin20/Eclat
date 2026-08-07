@@ -15,7 +15,6 @@ interface Props {
 interface Champs {
   name: string;
   age: string;
-  location: string;
   headline: string;
   description: string;
   specialties: string;
@@ -27,36 +26,33 @@ interface Champs {
 const VIDE: Champs = {
   name: '',
   age: '30',
-  location: '',
   headline: '',
   description: '',
   specialties: '',
   hourlyRate: '80',
   rating: '4.8',
-  mainPhoto: '/media/camille-cover.jpg',
+  mainPhoto: '/media/4.jpeg',
 };
 
 const TAILLE_PHOTO_MAX = 3 * 1024 * 1024;
 const TAILLE_VIDEO_MAX = 25 * 1024 * 1024;
 
-function lireFichier(file: File, kind: MediaKind): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const typeAttendu = kind === 'image' ? 'image/' : 'video/';
-    const libelle = kind === 'image' ? 'une image' : 'une vidéo';
-    const tailleMax = kind === 'image' ? TAILLE_PHOTO_MAX : TAILLE_VIDEO_MAX;
-    if (!file.type.startsWith(typeAttendu)) {
-      reject(new Error(`Le fichier sélectionné doit être ${libelle}.`));
-      return;
-    }
-    if (file.size > tailleMax) {
-      reject(new Error(`${kind === 'image' ? 'La photo ne doit pas dépasser 3 Mo' : 'La vidéo ne doit pas dépasser 25 Mo'}.`));
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error(`Impossible de lire ${kind === 'image' ? 'cette photo' : 'cette vidéo'}.`));
-    reader.readAsDataURL(file);
-  });
+function verifierFichier(file: File, kind: MediaKind) {
+  const typeAttendu = kind === 'image' ? 'image/' : 'video/';
+  const tailleMax = kind === 'image' ? TAILLE_PHOTO_MAX : TAILLE_VIDEO_MAX;
+  if (!file.type.startsWith(typeAttendu)) throw new Error(`Le fichier sélectionné doit être ${kind === 'image' ? 'une image' : 'une vidéo'}.`);
+  if (file.size > tailleMax) throw new Error(kind === 'image' ? 'La photo ne doit pas dépasser 3 Mo.' : 'La vidéo ne doit pas dépasser 25 Mo.');
+}
+
+async function televerser(file: File, kind: MediaKind): Promise<string> {
+  verifierFichier(file, kind);
+  const form = new FormData();
+  form.append('file', file);
+  form.append('kind', kind);
+  const response = await fetch('/api/admin/media', { method: 'POST', body: form });
+  const data = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
+  if (!response.ok || !data.url) throw new Error(data.error ?? 'Impossible d’envoyer le fichier vers Supabase.');
+  return data.url;
 }
 
 export default function CoachEditor({ coach, onClose }: Props) {
@@ -67,7 +63,6 @@ export default function CoachEditor({ coach, onClose }: Props) {
       ? {
           name: coach.name,
           age: String(coach.age),
-          location: coach.location,
           headline: coach.headline,
           description: coach.description,
           specialties: coach.specialties.join(', '),
@@ -79,10 +74,10 @@ export default function CoachEditor({ coach, onClose }: Props) {
   );
   const [erreur, setErreur] = useState<string | null>(null);
   const [enregistre, setEnregistre] = useState(false);
+  const [televersement, setTeleversement] = useState(false);
 
   // Nouveau média
   const [mKind, setMKind] = useState<MediaKind>('image');
-  const [mTitle, setMTitle] = useState('');
   const [mUrl, setMUrl] = useState('');
   const [mPoster, setMPoster] = useState('');
   const [mLocked, setMLocked] = useState(false);
@@ -115,7 +110,8 @@ export default function CoachEditor({ coach, onClose }: Props) {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      const contenu = await lireFichier(file, 'image');
+      setTeleversement(true);
+      const contenu = await televerser(file, 'image');
       if (destination === 'principale') {
         set('mainPhoto', contenu);
         setNomPhoto(file.name);
@@ -130,6 +126,8 @@ export default function CoachEditor({ coach, onClose }: Props) {
     } catch (cause) {
       setErreur(cause instanceof Error ? cause.message : 'Impossible de charger cette photo.');
       event.target.value = '';
+    } finally {
+      setTeleversement(false);
     }
   };
 
@@ -137,12 +135,38 @@ export default function CoachEditor({ coach, onClose }: Props) {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      setMUrl(await lireFichier(file, 'video'));
+      setTeleversement(true);
+      setMUrl(await televerser(file, 'video'));
       setNomMedia(file.name);
       setErreur(null);
     } catch (cause) {
       setErreur(cause instanceof Error ? cause.message : 'Impossible de charger cette vidéo.');
       event.target.value = '';
+    } finally {
+      setTeleversement(false);
+    }
+  };
+
+  const supprimerMedia = async (media: Media) => {
+    try {
+      const urls = [media.url, media.poster].filter((url): url is string => Boolean(url));
+      await Promise.all(urls.map(async (url) => {
+        const response = await fetch('/api/admin/media', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url }),
+        });
+        if (!response.ok) {
+          const data = (await response.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error ?? 'Suppression distante impossible.');
+        }
+      }));
+      if (courant) {
+        if (courant.mainPhoto === media.url) setMainPhoto(courant.id, VIDE.mainPhoto);
+        removeMedia(courant.id, media.id);
+      }
+    } catch (cause) {
+      setErreur(cause instanceof Error ? cause.message : 'Impossible de supprimer ce média.');
     }
   };
 
@@ -171,7 +195,7 @@ export default function CoachEditor({ coach, onClose }: Props) {
     const donnees = {
       name: champs.name.trim(),
       age: Math.max(18, Number(champs.age) || 30),
-      location: champs.location.trim() || 'France',
+      location: coach?.location ?? '',
       headline: champs.headline.trim(),
       description: champs.description.trim(),
       specialties: champs.specialties
@@ -200,15 +224,18 @@ export default function CoachEditor({ coach, onClose }: Props) {
       setErreur(`Sélectionnez ${mKind === 'image' ? 'une photo' : 'une vidéo'} depuis votre poste.`);
       return;
     }
+    if (mKind === 'video' && !mPoster.trim()) {
+      setErreur('Sélectionnez une vignette pour cette vidéo.');
+      return;
+    }
     addMedia(courant.id, {
       kind: mKind,
       url: mUrl.trim(),
       poster: mKind === 'video' ? mPoster.trim() || undefined : undefined,
-      title: mTitle.trim() || 'Sans titre',
+      title: `${mKind === 'image' ? 'Photo' : 'Vidéo'} ${courant.media.filter((media) => media.kind === mKind).length + 1}`,
       locked: mLocked,
       price: Math.max(0, Number(mPrice) || 0),
     });
-    setMTitle('');
     setMUrl('');
     setMPoster('');
     setNomMedia('');
@@ -258,11 +285,6 @@ export default function CoachEditor({ coach, onClose }: Props) {
             <div>
               <label htmlFor="a-age" className="etiquette">Âge</label>
               <input id="a-age" type="number" min={18} max={99} className="champ" value={champs.age} onChange={(e) => set('age', e.target.value)} />
-            </div>
-
-            <div>
-              <label htmlFor="a-location" className="etiquette">Localisation</label>
-              <input id="a-location" className="champ" value={champs.location} onChange={(e) => set('location', e.target.value)} placeholder="Paris 11e" />
             </div>
 
             <div className="sm:col-span-2">
@@ -367,7 +389,7 @@ export default function CoachEditor({ coach, onClose }: Props) {
                         )}
                         <button
                           type="button"
-                          onClick={() => removeMedia(courant.id, m.id)}
+                          onClick={() => void supprimerMedia(m)}
                           className="grid h-7 w-7 place-items-center rounded-full bg-white/95 text-rose shadow"
                           aria-label={`Supprimer « ${m.title} »`}
                         >
@@ -383,16 +405,12 @@ export default function CoachEditor({ coach, onClose }: Props) {
                 <p className="eyebrow">Ajouter un média</p>
 
                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <div>
+                  <div className="sm:col-span-2">
                     <label htmlFor="m-kind" className="etiquette">Type</label>
                     <select id="m-kind" className="champ" value={mKind} onChange={(e) => changerTypeMedia(e.target.value as MediaKind)}>
                       <option value="image">Photo</option>
                       <option value="video">Vidéo</option>
                     </select>
-                  </div>
-                  <div>
-                    <label htmlFor="m-title" className="etiquette">Titre</label>
-                    <input id="m-title" className="champ" value={mTitle} onChange={(e) => setMTitle(e.target.value)} placeholder="Séance du matin" />
                   </div>
                   {mKind === 'image' ? (
                     <div className="sm:col-span-2">
@@ -437,13 +455,15 @@ export default function CoachEditor({ coach, onClose }: Props) {
                   </div>
                 </div>
 
-                <button type="button" onClick={ajouterMedia} className="btn-secondaire mt-5">
+                <button type="button" onClick={ajouterMedia} className="btn-secondaire mt-5" disabled={televersement}>
                   <ImagePlus size={15} aria-hidden="true" />
                   Ajouter le média
                 </button>
 
                 <p className="mt-3 text-xs leading-relaxed text-ardoise">
-                  Import depuis votre poste : 3 Mo maximum par photo et 25 Mo par vidéo. Les fichiers sont conservés dans le navigateur.
+                  {televersement
+                    ? 'Envoi sécurisé vers Supabase en cours…'
+                    : 'Import vers Supabase Storage : 3 Mo maximum par photo et 25 Mo par vidéo.'}
                 </p>
               </div>
             </section>

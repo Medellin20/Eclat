@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Database,
   HardDrive,
@@ -11,7 +11,6 @@ import {
   Pencil,
   Plus,
   RotateCcw,
-  ShieldAlert,
   Trash2,
 } from 'lucide-react';
 import type { Coach } from '@/types';
@@ -20,26 +19,12 @@ import { formatPrice } from '@/lib/format';
 import CoachEditor from '@/components/CoachEditor';
 import { Chargement, Erreur } from '@/components/Etats';
 
-/**
- * ⚠️ AUTHENTIFICATION DE DÉMONSTRATION UNIQUEMENT
- *
- * Ce mot de passe est en clair côté client : n'importe qui peut le lire
- * dans le bundle JavaScript. Il n'offre AUCUNE sécurité réelle.
- *
- * En production, remplacez tout ce bloc par Supabase Auth :
- *   1. `supabase.auth.signInWithPassword({ email, password })`
- *   2. Protégez les routes via un middleware Next.js qui vérifie la session.
- *   3. Activez Row Level Security (RLS) sur la table `app_state` et
- *      n'autorisez l'écriture qu'aux comptes portant le rôle « admin ».
- *
- * Sans RLS, la clé anonyme publique permet à quiconque d'écrire dans la base.
- */
-const MOT_DE_PASSE_DEMO = 'eclat2026';
-
 export default function AdminPanel() {
   const { coaches, bookings, purchases, ready, removeCoach, resetDemo, remoteEnabled } = useApp();
 
   const [connecte, setConnecte] = useState(false);
+  const [authPrete, setAuthPrete] = useState(false);
+  const [connexionEnCours, setConnexionEnCours] = useState(false);
   const [saisie, setSaisie] = useState('');
   const [erreurConnexion, setErreurConnexion] = useState<string | null>(null);
 
@@ -49,7 +34,38 @@ export default function AdminPanel() {
   });
   const [aSupprimer, setASupprimer] = useState<Coach | null>(null);
 
-  if (!ready) return <Chargement label="Chargement de l’administration" />;
+  const supprimerProfil = async (coach: Coach) => {
+    const urls = new Set([coach.mainPhoto, ...coach.media.flatMap((media) => [media.url, media.poster ?? ''])].filter(Boolean));
+    await Promise.all([...urls].map((url) => fetch('/api/admin/media', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    })));
+    removeCoach(coach.id);
+    setASupprimer(null);
+  };
+
+  const reinitialiserPlateforme = async () => {
+    const urls = new Set(coaches.flatMap((coach) => [
+      coach.mainPhoto,
+      ...coach.media.flatMap((media) => [media.url, media.poster ?? '']),
+    ]).filter(Boolean));
+    await Promise.all([...urls].map((url) => fetch('/api/admin/media', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    })));
+    resetDemo();
+  };
+
+  useEffect(() => {
+    void fetch('/api/admin/session', { cache: 'no-store' })
+      .then((response) => response.json())
+      .then((data: { authenticated?: boolean }) => setConnecte(Boolean(data.authenticated)))
+      .finally(() => setAuthPrete(true));
+  }, []);
+
+  if (!ready || !authPrete) return <Chargement label="Chargement de l’administration" />;
 
   // ---------- Écran de connexion ----------
   if (!connecte) {
@@ -67,14 +83,23 @@ export default function AdminPanel() {
 
           <form
             className="mt-8"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              if (saisie === MOT_DE_PASSE_DEMO) {
+              setConnexionEnCours(true);
+              const response = await fetch('/api/admin/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: saisie }),
+              });
+              const data = (await response.json().catch(() => ({}))) as { error?: string };
+              if (response.ok) {
                 setConnecte(true);
+                setSaisie('');
                 setErreurConnexion(null);
               } else {
-                setErreurConnexion('Mot de passe incorrect. Réessayez.');
+                setErreurConnexion(data.error ?? 'Connexion impossible. Réessayez.');
               }
+              setConnexionEnCours(false);
             }}
           >
             <label htmlFor="motdepasse" className="etiquette">
@@ -91,7 +116,7 @@ export default function AdminPanel() {
               }}
               className="champ"
               aria-invalid={Boolean(erreurConnexion)}
-              aria-describedby={erreurConnexion ? 'err-connexion' : 'aide-connexion'}
+              aria-describedby={erreurConnexion ? 'err-connexion' : undefined}
             />
 
             {erreurConnexion && (
@@ -100,22 +125,10 @@ export default function AdminPanel() {
               </div>
             )}
 
-            <button type="submit" className="btn-primaire mt-5 w-full">
-              Se connecter
+            <button type="submit" className="btn-primaire mt-5 w-full" disabled={connexionEnCours}>
+              {connexionEnCours ? 'Connexion…' : 'Se connecter'}
             </button>
           </form>
-
-          <div id="aide-connexion" className="mt-7 flex gap-3 rounded-3xl bg-white/70 p-4">
-            <ShieldAlert size={17} className="mt-0.5 shrink-0 text-prune" aria-hidden="true" />
-            <p className="text-xs leading-relaxed text-ardoise">
-              Démonstration : le mot de passe est{' '}
-              <code className="rounded bg-brume px-1.5 py-0.5 font-semibold text-encre">
-                {MOT_DE_PASSE_DEMO}
-              </code>
-              . Il est écrit en clair dans le code et n’offre aucune sécurité. En
-              production, utilisez Supabase Auth avec Row Level Security.
-            </p>
-          </div>
         </div>
       </div>
     );
@@ -131,7 +144,7 @@ export default function AdminPanel() {
             Tableau de bord
           </h1>
         </div>
-        <button type="button" onClick={() => setConnecte(false)} className="btn-secondaire">
+        <button type="button" onClick={() => { void fetch('/api/admin/session', { method: 'DELETE' }); setConnecte(false); }} className="btn-secondaire">
           <LogOut size={15} aria-hidden="true" />
           Se déconnecter
         </button>
@@ -230,15 +243,14 @@ export default function AdminPanel() {
 
       <section aria-labelledby="titre-donnees" className="mt-14 border-t border-brume pt-8">
         <h2 id="titre-donnees" className="font-display text-xl text-encre">
-          Données de démonstration
+          Données de la plateforme
         </h2>
         <p className="mt-2 max-w-xl text-sm leading-relaxed text-ardoise">
-          Rétablit le profil d’origine et efface les réservations et
-          déblocages enregistrés dans ce navigateur.
+          Efface tous les profils, réservations et déblocages enregistrés.
         </p>
-        <button type="button" onClick={resetDemo} className="btn-secondaire mt-5">
+        <button type="button" onClick={() => void reinitialiserPlateforme()} className="btn-secondaire mt-5">
           <RotateCcw size={15} aria-hidden="true" />
-          Réinitialiser la démonstration
+          Tout réinitialiser
         </button>
       </section>
 
@@ -271,10 +283,7 @@ export default function AdminPanel() {
             <div className="mt-7 flex gap-3">
               <button
                 type="button"
-                onClick={() => {
-                  removeCoach(aSupprimer.id);
-                  setASupprimer(null);
-                }}
+                onClick={() => void supprimerProfil(aSupprimer)}
                 className="btn flex-1 bg-rose text-white hover:bg-[#c9356e]"
               >
                 Supprimer
