@@ -33,7 +33,7 @@ export default function AccueilPage() {
         <div className="relative mx-auto max-w-5xl px-5 pb-20 pt-16 text-center sm:px-8 sm:pb-24 sm:pt-24">
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-soft/20 blur-3xl" aria-hidden="true" />
           <div className="relative animate-montee">
-            <p className="eyebrow">Coaching &amp; bien-être · France</p>
+            <p className="eyebrow">Massages  &amp; bien-être et plaisir ·</p>
 
             <h1 className="mx-auto mt-5 max-w-4xl font-display text-[2.75rem] leading-[1.04] tracking-tight text-encre sm:text-6xl lg:text-7xl">
               Une heure avec quelqu&apos;un qui sait
@@ -46,9 +46,7 @@ export default function AccueilPage() {
                 Réserver une séance
                 <ArrowRight size={16} strokeWidth={2.2} aria-hidden="true" />
               </Link>
-              <a href="#profils" className="btn-secondaire">
-                Voir le profil
-              </a>
+              
             </div>
 
             <dl className="mx-auto mt-14 flex max-w-2xl flex-wrap justify-center gap-x-12 gap-y-5 border-t border-brume pt-7">
@@ -122,7 +120,7 @@ export default function AccueilPage() {
         <div className="aura surface overflow-hidden px-8 py-14 text-center sm:px-16">
           <p className="eyebrow">Prêt à commencer ?</p>
           <h2 className="mx-auto mt-3 max-w-2xl font-display text-3xl leading-tight text-encre sm:text-4xl">
-            La première séance sert surtout à comprendre où vous en êtes.
+            La première rencontre vous donne accès à un accès illimité aux extras.
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-sm leading-relaxed text-ardoise">
             Pas de programme type : chaque praticien construit à partir de votre situation.
