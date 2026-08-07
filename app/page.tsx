@@ -33,7 +33,7 @@ export default function AccueilPage() {
         <div className="relative mx-auto max-w-5xl px-5 pb-20 pt-16 text-center sm:px-8 sm:pb-24 sm:pt-24">
           <div className="pointer-events-none absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-rose-soft/20 blur-3xl" aria-hidden="true" />
           <div className="relative animate-montee">
-            <p className="eyebrow">Massages  &amp; bien-être et plaisir ·</p>
+            <p className="eyebrow">Massages bien-être &amp; plaisir ·</p>
 
             <h1 className="mx-auto mt-5 max-w-4xl font-display text-[2.75rem] leading-[1.04] tracking-tight text-encre sm:text-6xl lg:text-7xl">
               Une heure avec quelqu&apos;un qui sait
