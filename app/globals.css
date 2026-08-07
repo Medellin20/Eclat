@@ -17,6 +17,16 @@
     font-feature-settings: 'kern' 1, 'liga' 1;
   }
 
+  /* Le sélecteur Google est piloté par notre propre menu de langues. */
+  #google_translate_element,
+  .goog-te-banner-frame.skiptranslate {
+    display: none !important;
+  }
+
+  body {
+    top: 0 !important;
+  }
+
   /* Focus clavier visible partout — exigence d'accessibilité. */
   :focus-visible {
     @apply outline-none ring-2 ring-prune ring-offset-2 ring-offset-porcelaine rounded-md;

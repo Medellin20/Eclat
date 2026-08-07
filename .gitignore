@@ -57,3 +57,7 @@ __pycache__/
 
 # npm package directories
 node_modules/
+
+# Fichiers générés par Next.js
+.next/
+out/

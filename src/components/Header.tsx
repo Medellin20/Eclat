@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Menu, X, Sparkles } from 'lucide-react';
+import LanguageSelector from '@/components/LanguageSelector';
 
 const LIENS = [
   { href: '/', label: 'Accueil' },
@@ -78,7 +79,8 @@ export default function Header() {
           ))}
         </nav>
 
-        <div className="hidden md:block">
+        <div className="hidden items-center gap-4 md:flex">
+          <LanguageSelector />
           <Link href="/bookings" className="btn-primaire !px-5 !py-2.5">
             Prendre rendez-vous
           </Link>
@@ -117,6 +119,7 @@ export default function Header() {
           <Link href="/bookings" className="btn-primaire mt-3 w-full">
             Prendre rendez-vous
           </Link>
+          <LanguageSelector mobile />
         </nav>
       </div>
     </header>
