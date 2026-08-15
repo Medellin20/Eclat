@@ -40,7 +40,7 @@ export default function Footer() {
 
       <div className="border-t border-brume">
         <p className="mx-auto max-w-6xl px-5 py-6 text-xs text-ardoise sm:px-8">
-          © {new Date().getFullYear()} Éclat — projet de démonstration.
+          © {new Date().getFullYear()} Éclat — Disponible pour vous satisfaire.
         </p>
       </div>
     </footer>
