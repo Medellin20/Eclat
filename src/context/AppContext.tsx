@@ -24,6 +24,7 @@ interface AppContextValue {
   coaches: Coach[];
   bookings: Booking[];
   purchases: Purchase[];
+  paypalMeProfile: string;
   /** false tant que l'état initial n'est pas chargé (évite un flash de contenu vide). */
   ready: boolean;
   /** true si les variables Supabase sont configurées. */
@@ -45,6 +46,8 @@ interface AppContextValue {
   unlockMedia: (media: Media, paypalReference: string) => Purchase;
   isUnlocked: (mediaId: string) => boolean;
 
+  updatePaypalMeProfile: (profile: string) => void;
+
   resetDemo: () => void;
 }
 
@@ -54,6 +57,7 @@ const INITIAL: AppState = {
   coaches: [],
   bookings: [],
   purchases: [],
+  paypalMeProfile: process.env.NEXT_PUBLIC_PAYPAL_ME_PROFILE ?? '',
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -211,6 +215,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [state.purchases],
   );
 
+  const updatePaypalMeProfile = useCallback((profile: string) => {
+    setState((s) => ({ ...s, paypalMeProfile: profile }));
+  }, []);
+
   const resetDemo = useCallback(() => {
     setState(INITIAL);
   }, []);
@@ -220,6 +228,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       coaches: state.coaches,
       bookings: state.bookings,
       purchases: state.purchases,
+      paypalMeProfile: state.paypalMeProfile,
       ready,
       remoteEnabled: isSupabaseEnabled(),
       error,
@@ -234,6 +243,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cancelBooking,
       unlockMedia,
       isUnlocked,
+      updatePaypalMeProfile,
       resetDemo,
     }),
     [
@@ -251,6 +261,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       cancelBooking,
       unlockMedia,
       isUnlocked,
+      updatePaypalMeProfile,
       resetDemo,
     ],
   );

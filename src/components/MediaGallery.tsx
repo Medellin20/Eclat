@@ -9,7 +9,7 @@ import Lightbox from '@/components/Lightbox';
 import UnlockModal from '@/components/UnlockModal';
 
 export default function MediaGallery({ coach }: { coach: Coach }) {
-  const { isUnlocked, unlockMedia } = useApp();
+  const { isUnlocked, paypalMeProfile } = useApp();
   const [visionneuse, setVisionneuse] = useState<number | null>(null);
   const [aDebloquer, setADebloquer] = useState<Media | null>(null);
 
@@ -31,7 +31,7 @@ export default function MediaGallery({ coach }: { coach: Coach }) {
     setVisionneuse(i >= 0 ? i : 0);
   };
 
-  const rendreVignette = (media: Media, ratio: string) => {
+  const rendreVignette = (media: Media, ratio: string, photoNumber?: number) => {
     const verrouille = media.locked && !isUnlocked(media.id);
     const apercu = media.kind === 'video' ? media.poster ?? media.url : media.url;
 
@@ -82,7 +82,7 @@ export default function MediaGallery({ coach }: { coach: Coach }) {
 
         <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 p-3.5 text-left">
           <span className="text-[0.78rem] font-medium leading-snug text-white drop-shadow">
-            {media.title}
+            {photoNumber ? `Photo n°${photoNumber} · ` : ''}{media.title}
           </span>
           {verrouille && (
             <span className="tabulaire shrink-0 rounded-full bg-white/95 px-2.5 py-1 text-[0.68rem] font-semibold text-prune-deep">
@@ -111,7 +111,7 @@ export default function MediaGallery({ coach }: { coach: Coach }) {
           </p>
         ) : (
           <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3">
-            {photos.map((m) => rendreVignette(m, 'aspect-[4/5]'))}
+            {photos.map((m, index) => rendreVignette(m, 'aspect-[4/5]', index + 1))}
           </div>
         )}
       </section>
@@ -149,8 +149,9 @@ export default function MediaGallery({ coach }: { coach: Coach }) {
         <UnlockModal
           media={aDebloquer}
           coachName={coach.name}
+          paypalMeProfile={paypalMeProfile}
+          photoNumber={aDebloquer.kind === 'image' ? photos.findIndex((photo) => photo.id === aDebloquer.id) + 1 : undefined}
           onClose={() => setADebloquer(null)}
-          onConfirm={(paypalReference) => unlockMedia(aDebloquer, paypalReference)}
         />
       )}
     </>

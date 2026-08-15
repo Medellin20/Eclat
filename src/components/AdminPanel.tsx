@@ -5,12 +5,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import {
   Database,
+  CreditCard,
   HardDrive,
   KeyRound,
   LogOut,
   Pencil,
   Plus,
   RotateCcw,
+  Save,
   Trash2,
 } from 'lucide-react';
 import type { Coach } from '@/types';
@@ -18,15 +20,34 @@ import { useApp } from '@/context/AppContext';
 import { formatPrice } from '@/lib/format';
 import CoachEditor from '@/components/CoachEditor';
 import { Chargement, Erreur } from '@/components/Etats';
+import { isPaypalConfigured, normalizePaypalMeProfile } from '@/lib/paypal';
 
 export default function AdminPanel() {
-  const { coaches, bookings, purchases, ready, removeCoach, resetDemo, remoteEnabled } = useApp();
+  const { coaches, bookings, purchases, paypalMeProfile, ready, removeCoach, resetDemo, remoteEnabled, updatePaypalMeProfile } = useApp();
 
   const [connecte, setConnecte] = useState(false);
   const [authPrete, setAuthPrete] = useState(false);
   const [connexionEnCours, setConnexionEnCours] = useState(false);
   const [saisie, setSaisie] = useState('');
   const [erreurConnexion, setErreurConnexion] = useState<string | null>(null);
+  const [saisiePaypal, setSaisiePaypal] = useState(paypalMeProfile);
+  const [paypalEnregistre, setPaypalEnregistre] = useState(false);
+  const [erreurPaypal, setErreurPaypal] = useState<string | null>(null);
+
+  useEffect(() => setSaisiePaypal(paypalMeProfile), [paypalMeProfile]);
+
+  const enregistrerPaypal = () => {
+    const profile = normalizePaypalMeProfile(saisiePaypal);
+    if (!isPaypalConfigured(profile)) {
+      setErreurPaypal('Indiquez un identifiant PayPal.Me valide, par exemple monprofil.');
+      setPaypalEnregistre(false);
+      return;
+    }
+    updatePaypalMeProfile(profile);
+    setSaisiePaypal(profile);
+    setErreurPaypal(null);
+    setPaypalEnregistre(true);
+  };
 
   const [editeur, setEditeur] = useState<{ ouvert: boolean; coach: Coach | null }>({
     ouvert: false,
@@ -175,6 +196,39 @@ export default function AdminPanel() {
             : 'Supabase n’est pas configuré : les données sont conservées dans le localStorage de ce navigateur.'}
         </p>
       </div>
+
+      <section aria-labelledby="titre-paypal-admin" className="mt-10 surface p-6 sm:p-8">
+        <div className="flex items-start gap-4">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-rose-wash text-prune">
+            <CreditCard size={19} aria-hidden="true" />
+          </span>
+          <div>
+            <h2 id="titre-paypal-admin" className="font-display text-2xl text-encre">PayPal.Me</h2>
+            <p className="mt-1 text-sm leading-relaxed text-ardoise">Ajoutez ou modifiez le profil utilisé pour recevoir les paiements des photos.</p>
+          </div>
+        </div>
+        <form className="mt-6" onSubmit={(event) => { event.preventDefault(); enregistrerPaypal(); }}>
+          <label htmlFor="paypal-me-profile" className="etiquette">Identifiant ou lien PayPal.Me</label>
+          <div className="mt-2 flex flex-col gap-3 sm:flex-row">
+            <input
+              id="paypal-me-profile"
+              type="text"
+              value={saisiePaypal}
+              onChange={(event) => { setSaisiePaypal(event.target.value); setPaypalEnregistre(false); setErreurPaypal(null); }}
+              placeholder="monprofil ou https://paypal.me/monprofil"
+              className="champ flex-1"
+              autoComplete="off"
+            />
+            <button type="submit" className="btn-primaire shrink-0">
+              <Save size={15} aria-hidden="true" />
+              Enregistrer
+            </button>
+          </div>
+          {erreurPaypal && <p role="alert" className="mt-3 text-sm text-rose">{erreurPaypal}</p>}
+          {paypalEnregistre && <p role="status" className="mt-3 text-sm text-prune">Profil PayPal.Me enregistré : paypal.me/{saisiePaypal}</p>}
+          {!remoteEnabled && <p className="mt-3 text-xs leading-relaxed text-ardoise">Sans Supabase, ce réglage est conservé uniquement dans ce navigateur.</p>}
+        </form>
+      </section>
 
       <section aria-labelledby="titre-profils-admin" className="mt-12">
         <div className="flex flex-wrap items-center justify-between gap-4">

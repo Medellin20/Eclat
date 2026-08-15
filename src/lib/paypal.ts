@@ -1,13 +1,11 @@
-/**
- * Remplacez uniquement la valeur ci-dessous par votre identifiant PayPal.Me.
- * Exemple : pour https://paypal.me/monprofil, indiquez "monprofil".
- */
-export const PAYPAL_ME_PROFILE = 'paypal.me/jeandupont';
-
-export function isPaypalConfigured(): boolean {
-  return PAYPAL_ME_PROFILE !== 'paypal.me/jeandupont' && /^[A-Za-z0-9._-]+$/.test(PAYPAL_ME_PROFILE);
+export function normalizePaypalMeProfile(value: string): string {
+  return value.trim().replace(/^https?:\/\/(?:www\.)?paypal\.me\//i, '').replace(/\/$/, '');
 }
 
-export function paypalMeUrl(amount: number): string {
-  return `https://www.paypal.me/${encodeURIComponent(PAYPAL_ME_PROFILE)}/${amount.toFixed(2)}EUR`;
+export function isPaypalConfigured(profile: string): boolean {
+  return /^[A-Za-z0-9._-]+$/.test(profile);
+}
+
+export function paypalMeUrl(profile: string, amount: number): string {
+  return `https://www.paypal.me/${encodeURIComponent(profile)}/${amount.toFixed(2)}EUR`;
 }

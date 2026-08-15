@@ -47,6 +47,8 @@ interface Corps {
   mediaTitle?: unknown;
   coachName?: unknown;
   amount?: unknown;
+  customerEmail?: unknown;
+  photoNumber?: unknown;
 }
 
 function estTexteCourt(v: unknown, max = 200): v is string {
@@ -106,6 +108,12 @@ export async function POST(request: Request) {
   if (typeof corps.amount !== 'number' || !Number.isFinite(corps.amount) || corps.amount < 0) {
     erreurs.push('amount doit être un nombre positif.');
   }
+  if (!estTexteCourt(corps.customerEmail, 254) || !/^\S+@\S+\.\S+$/.test(corps.customerEmail)) {
+    erreurs.push('customerEmail doit être une adresse e-mail valide.');
+  }
+  if (corps.photoNumber !== undefined && (!Number.isInteger(corps.photoNumber) || Number(corps.photoNumber) < 1)) {
+    erreurs.push('photoNumber doit être un entier positif.');
+  }
 
   if (erreurs.length > 0) {
     return NextResponse.json({ ok: false, errors: erreurs }, { status: 400 });
@@ -116,6 +124,8 @@ export async function POST(request: Request) {
     mediaTitle: String(corps.mediaTitle),
     coachName: String(corps.coachName),
     amount: Number(corps.amount),
+    customerEmail: String(corps.customerEmail),
+    photoNumber: corps.photoNumber === undefined ? undefined : Number(corps.photoNumber),
   };
 
   // --- 5. Envoi SMTP (optionnel : la démonstration fonctionne sans)
@@ -147,16 +157,19 @@ export async function POST(request: Request) {
     await transport.sendMail({
       from: `Éclat <${EMAIL_USER}>`,
       to: NOTIFY_TO,
-      subject: `Déblocage simulé — ${details.coachName}`,
+      subject: `Paiement PayPal.Me à vérifier${details.photoNumber ? ` — Photo n°${details.photoNumber}` : ''}`,
       text: [
-        'Un contenu premium vient d’être débloqué (démonstration).',
+        'Un client indique avoir effectué un paiement PayPal.Me.',
+        'Vérifiez la réception des fonds avant tout envoi.',
         '',
         `Praticien : ${details.coachName}`,
+        ...(details.photoNumber ? [`Photo     : n°${details.photoNumber}`] : []),
         `Média     : ${details.mediaTitle} (${details.mediaId})`,
-        `Montant   : ${details.amount} crédits`,
+        `Montant   : ${details.amount.toFixed(2)} EUR`,
+        `E-mail    : ${details.customerEmail}`,
         `Horodatage: ${new Date().toISOString()}`,
         '',
-        'Aucune donnée bancaire n’a été collectée ni transmise.',
+        'Après vérification, envoyez la photo à l’adresse indiquée.',
       ].join('\n'),
     });
 

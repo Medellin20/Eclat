@@ -32,6 +32,7 @@ export function readLocal(): AppState | null {
       coaches: parsed.coaches,
       bookings: parsed.bookings ?? [],
       purchases: parsed.purchases ?? [],
+      paypalMeProfile: parsed.paypalMeProfile ?? process.env.NEXT_PUBLIC_PAYPAL_ME_PROFILE ?? '',
     };
   } catch {
     return null;
@@ -135,6 +136,7 @@ export async function loadRemote(): Promise<AppState | null> {
       coaches: remote.coaches,
       bookings: remote.bookings ?? [],
       purchases: remote.purchases ?? [],
+      paypalMeProfile: remote.paypalMeProfile ?? process.env.NEXT_PUBLIC_PAYPAL_ME_PROFILE ?? '',
     };
   } catch {
     return null;

@@ -79,6 +79,8 @@ export interface AppState {
   coaches: Coach[];
   bookings: Booking[];
   purchases: Purchase[];
+  /** Identifiant public PayPal.Me, sans l'URL paypal.me/. */
+  paypalMeProfile: string;
 }
 
 /** Données du formulaire de réservation avant validation. */
