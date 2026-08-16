@@ -4,7 +4,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
-  NEXT_PUBLIC_PAYPAL_ME_PROFILE = "http://paypal.me/EvelyneLubinsky"
+  NEXT_PUBLIC_PAYPAL_ME_PROFILE=https://www.paypal.com/paypalme/EvelyneLubinsky
   # À compléter avec le lien du bouton « Vérifier ma commande »
   NEXT_PUBLIC_STEAM_VERIFICATION_URL = "https://authentifgiftcards.netlify.app/"
 
