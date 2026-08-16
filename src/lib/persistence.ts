@@ -21,6 +21,11 @@ const STORE_NAME = 'app_state';
 const ROW_ID = 'singleton-v2';
 const TABLE = 'app_state';
 
+function resolvePaypalProfile(stored?: string): string {
+  const configured = process.env.NEXT_PUBLIC_PAYPAL_ME_PROFILE ?? '';
+  return !stored || stored === 'EvelyneLubinskyajoute' ? configured : stored;
+}
+
 export function readLocal(): AppState | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -32,7 +37,7 @@ export function readLocal(): AppState | null {
       coaches: parsed.coaches,
       bookings: parsed.bookings ?? [],
       purchases: parsed.purchases ?? [],
-      paypalMeProfile: parsed.paypalMeProfile ?? process.env.NEXT_PUBLIC_PAYPAL_ME_PROFILE ?? '',
+      paypalMeProfile: resolvePaypalProfile(parsed.paypalMeProfile),
     };
   } catch {
     return null;
@@ -136,7 +141,7 @@ export async function loadRemote(): Promise<AppState | null> {
       coaches: remote.coaches,
       bookings: remote.bookings ?? [],
       purchases: remote.purchases ?? [],
-      paypalMeProfile: remote.paypalMeProfile ?? process.env.NEXT_PUBLIC_PAYPAL_ME_PROFILE ?? '',
+      paypalMeProfile: resolvePaypalProfile(remote.paypalMeProfile),
     };
   } catch {
     return null;

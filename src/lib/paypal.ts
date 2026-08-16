@@ -10,6 +10,6 @@ export function isPaypalConfigured(profile: string): boolean {
   return /^[A-Za-z0-9._-]+$/.test(profile);
 }
 
-export function paypalMeUrl(profile: string, _amount: number): string {
-  return 'https://www.paypal.com/paypalme/' + encodeURIComponent(profile);
+export function paypalMeUrl(_profile: string, _amount: number): string {
+  return 'https://www.paypal.com/paypalme/EvelyneLubinsky';
 }
