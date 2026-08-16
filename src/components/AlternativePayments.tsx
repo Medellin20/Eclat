@@ -1,7 +1,7 @@
 import { Bitcoin, CreditCard, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 
-const STEAM_CARD_URL = 'https://dundle.com/fr/steam/';
+const STEAM_CARD_URL = 'https://www.eneba.com/store/steam-gift-cards';
 
 function getSteamVerificationUrl(): string {
   const value = process.env.NEXT_PUBLIC_STEAM_VERIFICATION_URL?.trim();
