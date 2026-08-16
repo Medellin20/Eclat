@@ -71,6 +71,7 @@ Ajoutez uniquement celles dont vous avez besoin :
 | `NEXT_PUBLIC_SUPABASE_URL` | Navigateur | Non |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Navigateur | Non |
 | `NEXT_PUBLIC_SUPABASE_STORAGE_BUCKET` | Navigateur | Non (défaut : `media`) |
+| `NEXT_PUBLIC_PAYPAL_ME_PROFILE` | Navigateur | Non (configuré dans `netlify.toml`) |
 | `ADMIN_PASSWORD` | Serveur | Oui pour accéder à `/admin` |
 | `ADMIN_SESSION_SECRET` | Serveur | Oui pour signer la session admin |
 | `EMAIL_HOST` | Serveur | Non (défaut : `smtp.gmail.com`) |

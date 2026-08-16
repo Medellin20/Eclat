@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { X, ShieldCheck, Check, Loader2, Lock, ExternalLink } from 'lucide-react';
 import type { Media } from '@/types';
 import { isPaypalConfigured, paypalMeUrl } from '@/lib/paypal';
+import AlternativePayments from '@/components/AlternativePayments';
 
 interface Props {
   media: Media;
@@ -93,7 +94,7 @@ export default function UnlockModal({ media, coachName, paypalMeProfile, photoNu
                 <form onSubmit={continuer} className="mt-5">
                   <label htmlFor="email-photo" className="text-sm font-medium text-encre">E-mail de réception</label>
                   <input id="email-photo" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" className="mt-2 w-full rounded-2xl border border-brume bg-white px-4 py-3 text-sm text-encre outline-none transition focus:border-prune" />
-                  <button type="submit" className="btn-primaire mt-5 w-full">Continuer vers PayPal.Me</button>
+                  <button type="submit" className="btn-primaire mt-5 w-full">Continuer vers le paiement</button>
                 </form>
               ) : etape === 'traitement' ? (
                 <div className="mt-6 flex items-center justify-center gap-2 py-3 text-sm text-prune"><Loader2 size={17} className="animate-spin" />Envoi de votre demande…</div>
@@ -103,6 +104,7 @@ export default function UnlockModal({ media, coachName, paypalMeProfile, photoNu
                     Sur PayPal, choisissez obligatoirement l’option <strong>« Amis et proches »</strong> avant de valider l’envoi.
                   </div>
                   <a href={paypalMeUrl(paypalMeProfile, media.price)} target="_blank" rel="noopener noreferrer" className="btn-primaire mt-4 flex w-full items-center justify-center gap-2">Payer {media.price.toFixed(2)} € sur PayPal.Me <ExternalLink size={16} aria-hidden="true" /></a>
+                  <AlternativePayments />
                   <button type="button" onClick={signalerPaiement} className="btn-secondaire mt-3 w-full">J’ai effectué le paiement</button>
                   <button type="button" onClick={() => setEtape('coordonnees')} className="btn-fantome mt-2 w-full">Modifier mon e-mail</button>
                 </div>

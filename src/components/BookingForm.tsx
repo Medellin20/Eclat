@@ -432,7 +432,7 @@ export default function BookingForm() {
             </div>
 
             <button type="submit" className="btn-primaire mt-7 w-full">
-              Continuer vers le paiement PayPal
+              Continuer vers le paiement
             </button>
 
             {paiementPret && coach && (
@@ -446,7 +446,7 @@ export default function BookingForm() {
             )}
 
             <p className="mt-4 text-center text-xs leading-relaxed text-ardoise">
-              La réservation n’est enregistrée qu’après confirmation du paiement par PayPal.
+              La réservation n’est enregistrée qu’après confirmation du paiement.
             </p>
           </div>
         </div>

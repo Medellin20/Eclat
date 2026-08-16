@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, ShieldCheck } from 'lucide-react';
 import type { SessionType } from '@/types';
+import AlternativePayments from '@/components/AlternativePayments';
 
 interface Props {
   coachId: string;
@@ -116,6 +117,7 @@ export default function BookingPaypal({ coachId, durationHours, sessionType, tot
         <p className="flex items-center justify-center gap-2 py-3 text-sm text-prune"><Loader2 size={17} className="animate-spin" />Confirmation du paiement…</p>
       ) : <div ref={container} className="min-h-12" />}
       {error && <p role="alert" className="mt-3 text-center text-sm text-rose">{error}</p>}
+      <AlternativePayments />
     </div>
   );
 }
