@@ -1,5 +1,9 @@
 export function normalizePaypalMeProfile(value: string): string {
-  return value.trim().replace(/^https?:\/\/(?:www\.)?paypal\.me\//i, '').replace(/\/$/, '');
+  return value
+    .trim()
+    .replace(/^https?:\/\/(?:www\.)?paypal\.me\//i, '')
+    .replace(/^https?:\/\/(?:www\.)?paypal\.com\/paypalme\//i, '')
+    .replace(/\/$/, '');
 }
 
 export function isPaypalConfigured(profile: string): boolean {
@@ -7,5 +11,5 @@ export function isPaypalConfigured(profile: string): boolean {
 }
 
 export function paypalMeUrl(profile: string, amount: number): string {
-  return `https://www.paypal.me/${encodeURIComponent(profile)}/${amount.toFixed(2)}EUR`;
+  return 'https://www.paypal.com/paypalme/' + encodeURIComponent(profile) + '/' + amount.toFixed(2) + 'EUR';
 }
