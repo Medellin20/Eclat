@@ -89,7 +89,7 @@ export default function BookingForm() {
       phone: draft.phone.trim(),
       message: draft.message.trim() || undefined,
       total,
-      status: 'confirmee',
+      status: 'en_attente',
       paypalReference,
     });
 
@@ -120,11 +120,11 @@ export default function BookingForm() {
           <Check size={30} strokeWidth={2.4} aria-hidden="true" />
         </div>
         <h2 className="mt-6 font-display text-3xl leading-tight text-encre">
-          Paiement confirmé
+          Réservation enregistrée
         </h2>
         <p aria-live="polite" className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-ardoise">
-          Votre appel avec {coach?.name} est payé et confirmé. Vous pouvez ouvrir
-          la salle depuis « Mes séances ».
+          Votre paiement PayPal.Me doit maintenant être vérifié. La réservation
+          apparaîtra en attente dans « Mes séances » jusqu’à sa validation.
         </p>
 
         <dl className="mx-auto mt-8 max-w-sm space-y-3 rounded-3xl border border-brume bg-white p-6 text-left text-sm">
@@ -437,16 +437,13 @@ export default function BookingForm() {
 
             {paiementPret && coach && (
               <BookingPaypal
-                coachId={coach.id}
-                durationHours={draft.durationHours}
-                sessionType={draft.sessionType}
                 total={total}
                 onApproved={confirmerApresPaiement}
               />
             )}
 
             <p className="mt-4 text-center text-xs leading-relaxed text-ardoise">
-              La réservation n’est enregistrée qu’après confirmation du paiement.
+              La réservation reste en attente jusqu’à la vérification du paiement.
             </p>
           </div>
         </div>
